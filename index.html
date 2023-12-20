@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <script type="text/javascript">
+      function setup(htmlComponent) {
+        htmlComponent.addEventListener("DataChanged", function (event) {
+          const data = JSON.parse(htmlComponent.Data);
+
+          window.data = data;
+
+          if (data.count) {
+            document.body.dispatchEvent(
+              new CustomEvent("setData", {
+                bubbles: true,
+                detail: { ...data },
+              })
+            );
+          }
+        });
+
+        htmlComponent.addEventListener("updateMenu", function (event) {
+          document.body.dispatchEvent(
+            new CustomEvent("setMenu", {
+              bubbles: true,
+              detail: event.Data,
+            })
+          );
+        });
+
+        htmlComponent.addEventListener("updateView", function (event) {
+          document.body.dispatchEvent(
+            new CustomEvent("setView", {
+              bubbles: true,
+              detail: event.Data,
+            })
+          );
+        });
+
+        document.body.addEventListener("sendSignal", (e) => {
+          if (!e.detail) return;
+
+          htmlComponent.sendEventToMATLAB(
+            e.detail.label,
+            e.detail.data ?? null
+          );
+        });
+      }
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
