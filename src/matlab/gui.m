@@ -117,7 +117,7 @@ classdef gui < matlab.apps.AppBase
                     app.drinkData = app.menu(strcmp(drinkName, app.menu(:, 1)), :);
                     app.makingDrink = true;
 
-                    event = struct("view", "PLACE_CUP","drinkName", drinkName);
+                    event = struct("view", "DRINK_DETAIL","drinkName", drinkName);
 
                     sendEventToHTMLSource(app.HTML,"updateView", jsonencode(event));
                 case "returnToMenu"
@@ -217,7 +217,7 @@ classdef gui < matlab.apps.AppBase
         end
 
         function setMenu(app, menu)
-            assert(size(menu,2) == 2)
+            assert(size(menu,2) == 3)
 
             app.menu = menu;
             app.updateMenu();

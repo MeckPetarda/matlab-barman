@@ -1,0 +1,9 @@
+* {
+  box-sizing: border-box;
+  font-family: Calibri,Candara,Segoe,Segoe UI,Optima,Arial,sans-serif; 
+}
+
+img, picture, video, canvas, svg {
+  display: block;
+  max-width: 100%;
+}

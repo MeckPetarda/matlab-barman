@@ -9,12 +9,14 @@ export default class Menu extends Component {
           <tr>
             <td>
               <button
-                onClick={(e) => DataControll.sendSignal("selectDrink", row[0])}
+                onClick={(e) =>
+                  DataControll.sendSignal("selectDrink", row.name)
+                }
               >
-                {row[0]}
+                {row.name}
               </button>
             </td>
-            <td>{row[1]}</td>
+            <td>{row.gCode}</td>
           </tr>
         ))}
       </table>

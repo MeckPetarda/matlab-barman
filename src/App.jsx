@@ -3,6 +3,8 @@ import Counter from "./components/Counter";
 import { createRef } from "react";
 import DataControll from "./utils/DataControll";
 import Menu from "./components/Menu";
+import Images from "./components/Img";
+import DrinkDetail from "./components/DrinkDetail";
 
 export default class App extends Component {
   mainRef = createRef();
@@ -15,7 +17,12 @@ export default class App extends Component {
     document.addEventListener("setView", this._handleViewChange);
   }
 
-  state = { count: 0, view: "DRINK_SELECT" };
+  state = {
+    count: 0,
+    view: "DRINK_SELECT",
+    menu: [{ name: "test", gCode: "G10000", img: "cosmopolitan.jpg" }],
+    mixingDrink: 0,
+  };
 
   _handleDataChange = (e) => {
     if (!e?.detail?.count) return;
@@ -24,7 +31,13 @@ export default class App extends Component {
   };
 
   _handleMenuChange = (e) => {
-    this.setState({ menu: JSON.parse(e.detail) });
+    this.setState({
+      menu: JSON.parse(e.detail).map((e) => ({
+        name: e[0],
+        gCode: e[1],
+        img: e[2],
+      })),
+    });
   };
 
   _handleViewChange = (e) => {
@@ -33,8 +46,12 @@ export default class App extends Component {
     this.setState({ view: data.view });
 
     switch (data.view) {
-      case "PLACE_CUP":
-        this.setState({ mixingDrink: data.drinkName });
+      case "DRINK_DETAIL":
+        this.setState({
+          mixingDrink: this.state.menu.findIndex(
+            (e) => e.name === data.drinkName
+          ),
+        });
         break;
 
       case "DRINK_SELECT":
@@ -53,18 +70,9 @@ export default class App extends Component {
       case "DRINK_SELECT":
         return this.state.menu && <Menu menu={this.state.menu} />;
 
-      case "PLACE_CUP":
+      case "DRINK_DETAIL":
         return (
-          <div>
-            <button onClick={(e) => DataControll.sendSignal("returnToMenu")}>
-              Cancel
-            </button>
-            <h1>{this.state.mixingDrink}</h1>
-            <span>Please place the cup in the displenser cavity</span>
-            <button onClick={(e) => DataControll.sendSignal("beginDrink")}>
-              Continue
-            </button>
-          </div>
+          <DrinkDetail menu={this.state.menu} index={this.state.mixingDrink} />
         );
 
       case "DRINK_PROGRESS":
