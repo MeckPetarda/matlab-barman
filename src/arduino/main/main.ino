@@ -112,9 +112,9 @@ void driveMotor(int motorId, int motorDir, int steps) {
 
   for (int i = 0; i <= steps; i++) {
     digitalWrite(stepPin, HIGH);
-    delay(2);
+    delay(1);
     digitalWrite(stepPin, LOW);
-    delay(2);
+    delay(1);
   }
 
   digitalWrite(enablePin, HIGH);

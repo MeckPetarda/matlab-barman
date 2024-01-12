@@ -10,6 +10,7 @@ classdef gui < matlab.apps.AppBase
 
     properties (Access = private)
         menu;
+        commands;
         makingDrink = false;
         drinkData;
         instructions;
@@ -20,6 +21,14 @@ classdef gui < matlab.apps.AppBase
 
     methods (Access = private)
         function performGCode(app, code)
+
+            angle = 0;
+            ANGLE_STEP = 360/10;
+            GEAR_RATIO = 2;
+            NUMBER_OF_STEPS_PER_REVOLUTION = 192;
+
+            res = strings(0);
+
             for i = 1:size(code)
                 word = char(code(i));
                 leadingChar = word(1);
@@ -29,14 +38,53 @@ classdef gui < matlab.apps.AppBase
 
                     case 'G'
                         if word(2) == '1'
-                            index = char(code(i + 1))
-                            count = char(code(i + 2))
+                            index = str2double(char(code(i + 1)));
+                            count = str2double(char(code(i + 2)));
 
+                            if (index == 11)
+
+                            else
+                                destination = index * ANGLE_STEP;
+
+
+                                dir1 = angle - destination
+                                dir2 = angle + 360 - destination
+
+                                rotor = dir1;
+
+                                if abs(dir1) > abs(dir2)
+                                    rotor = dir2;
+                                end
+
+                                steps = round(((angle * GEAR_RATIO) / 360) .* NUMBER_OF_STEPS_PER_REVOLUTION)
+
+                                angle = angle + rotor;
+
+                               
+                                if abs(steps) > 0
+                                     dir = 0;
+                                    if (steps < 0)
+                                        dir = 1;
+                                    end
+
+                                    res(end+1) = strcat("0:" , num2str(dir) , ":" ,num2str(abs(steps)), "&1:1:200&1:2:200")
+                                end
+
+                                for j = 1:count - 1
+                                    res(end+1) = strcat("1:1:200&1:2:200")
+
+                                end
+
+                            end
                             i = i + 2;
                         end
                 end
             end
 
+            res
+            app.instructions = res;
+            app.instructionIndex = 1;
+            app.performInstructions();
         end
 
         function performInstructions(app)
@@ -131,9 +179,14 @@ classdef gui < matlab.apps.AppBase
 
                     sendEventToHTMLSource(app.HTML,"updateView", jsonencode(event));
 
-                    app.instructions = ["1:0:400&0:1:400", "1:1:200&1:0:200&1:1:400"];
-                    app.instructionIndex = 1;
-                    app.performInstructions();
+                    % app.drinkData(2)
+
+                    code = app.parseGCode(app.drinkData(2));
+                    app.performGCode(code);
+
+                    % app.instructions = ["0:1:12000"];
+                    % app.instructionIndex = 1;
+                    % app.performInstructions();
             end
 
         end
@@ -221,6 +274,12 @@ classdef gui < matlab.apps.AppBase
 
             app.menu = menu;
             app.updateMenu();
+        end
+
+        function setCommands(app, commands)
+            assert(size(commands,2) == 3)
+
+            app.commands = commands;
         end
     end
 end
