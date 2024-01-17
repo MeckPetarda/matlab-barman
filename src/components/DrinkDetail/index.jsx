@@ -1,10 +1,25 @@
-import React, { Component } from "react";
+import { Component } from "react";
+import PropTypes from "prop-types";
+
 import Images from "../Img";
 import DataControll from "../../utils/DataControll";
 
 import style from "./style.module.scss";
 
+/**
+ * @augments {Component<Props, State>}
+ */
 export default class DrinkDetail extends Component {
+  static propTypes = {
+    menu: PropTypes.arrayOf(
+      PropTypes.shape({
+        name: PropTypes.string,
+        gCode: PropTypes.string,
+      })
+    ),
+    index: PropTypes.number,
+  };
+
   render() {
     return (
       <div className={style.wrapper}>
@@ -18,13 +33,13 @@ export default class DrinkDetail extends Component {
         <div className={style.buttonWrapper}>
           <button
             className={style.backButton}
-            onClick={(e) => DataControll.sendSignal("returnToMenu")}
+            onClick={() => DataControll.sendSignal("returnToMenu")}
           >
             Cancel
           </button>
           <button
             className={style.continueButton}
-            onClick={(e) => DataControll.sendSignal("beginDrink")}
+            onClick={() => DataControll.sendSignal("beginDrink")}
           >
             Continue
           </button>

@@ -38,8 +38,8 @@ classdef gui < matlab.apps.AppBase
             drinkInstructions = drinkInstructions(2:end);
 
             for i = 3:3:size(code)
-                index = str2double(char(code(i)))
-                count = str2double(char(code(i + 1)))
+                index = str2double(char(code(i)));
+                count = str2double(char(code(i + 1)));
 
                 if (index == 11)
 
@@ -49,7 +49,7 @@ classdef gui < matlab.apps.AppBase
                     drinkInstructions(end + 1) = struct( ...
                         "command", strcat("1:0:", num2str(MIX_STEPS)), ...
                         "message", "Mixing" ...
-                    )
+                    );
                     drinkInstructions(end + 1) = struct( ...
                         "command", strcat("2:1:100"), ...
                         "message", "" ...
@@ -119,7 +119,11 @@ classdef gui < matlab.apps.AppBase
 
         function performInstructions(app)
 
-            if isempty(app.instructions) || length(app.instructions) < app.instructionIndex; return; end
+            if isempty(app.instructions) || length(app.instructions) < app.instructionIndex
+                event = struct("view", "DRINK_FINISHED");
+
+                sendEventToHTMLSource(app.HTML, "updateView", jsonencode(event));
+            end
 
             if (app.instructions(app.instructionIndex).message ~= "")
                 event = struct( ...

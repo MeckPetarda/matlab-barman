@@ -1,4 +1,5 @@
-import React, { Component } from "react";
+import { Component } from "react";
+import PropTypes from "prop-types";
 
 import Cosmopolitan from "../../../imgs/cosmopolitan.jpg";
 import JungleJuice4Poor from "../../../imgs/jungle-juice-4-poor.jpg";
@@ -14,7 +15,14 @@ import SexOnTheBeach from "../../../imgs/sex-on-the-beach.jpg";
 
 import style from "./style.module.scss";
 
+/**
+ * @augments {Component<Props, State>}
+ */
 export default class Images extends Component {
+  static propTypes = {
+    index: PropTypes.number,
+  };
+
   render() {
     switch (this.props.index) {
       case 0:

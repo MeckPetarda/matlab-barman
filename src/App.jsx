@@ -1,9 +1,9 @@
-import React, { Component } from "react";
+import { Component } from "react";
 import { createRef } from "react";
 import DataControll from "./utils/DataControll";
 import Menu from "./components/Menu";
-import Images from "./components/Img";
 import DrinkDetail from "./components/DrinkDetail";
+import DrinkFinished from "./components/DrinkFinished";
 
 export default class App extends Component {
   mainRef = createRef();
@@ -36,7 +36,6 @@ export default class App extends Component {
       menu: JSON.parse(e.detail).map((e) => ({
         name: e[0],
         gCode: e[1],
-        img: e[2],
       })),
     });
   };
@@ -59,6 +58,9 @@ export default class App extends Component {
         break;
 
       case "DRINK_PROGRESS":
+        break;
+
+      case "DRINK_FINISHED":
         break;
 
       default:
@@ -85,15 +87,26 @@ export default class App extends Component {
       case "DRINK_PROGRESS":
         return (
           <div>
-            <button onClick={(e) => DataControll.sendSignal("returnToMenu")}>
+            <button onClick={() => DataControll.sendSignal("returnToMenu")}>
               Cancel
             </button>
-            <pre>{JSON.stringify(this.state.menu[this.state.mixingDrink])}</pre>
-            {this.state.progress && (
-              <pre>{JSON.stringify(this.state.progress)}</pre>
-            )}
-            <span>WIP</span>
+
+            <h1>{`Making ${this.state.menu[this.state.mixingDrink].name}`}</h1>
+            <h2>{`${this.state.progress.message} (${this.state.progress.progress}/${this.state.progress.total})`}</h2>
+            <progress
+              max={this.state.progress.total}
+              min={0}
+              value={this.state.progress.progress}
+            />
           </div>
+        );
+
+      case "DRINK_FINISHED":
+        return (
+          <DrinkFinished
+            menu={this.state.menu}
+            index={this.state.mixingDrink}
+          />
         );
 
       default:

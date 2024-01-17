@@ -1,15 +1,15 @@
 import { Component } from "react";
 import PropTypes from "prop-types";
 
-import DataControll from "../../utils/DataControll";
 import Images from "../Img";
+import DataControll from "../../utils/DataControll";
 
 import style from "./style.module.scss";
 
 /**
  * @augments {Component<Props, State>}
  */
-export default class Menu extends Component {
+export default class DrinkFinished extends Component {
   static propTypes = {
     menu: PropTypes.arrayOf(
       PropTypes.shape({
@@ -17,21 +17,18 @@ export default class Menu extends Component {
         gCode: PropTypes.string,
       })
     ),
+    index: PropTypes.number,
   };
 
   render() {
     return (
       <div className={style.wrapper}>
-        {this.props.menu.map((row, index) => (
-          <button
-            key={row.name}
-            className={style.button}
-            onClick={() => DataControll.sendSignal("selectDrink", row.name)}
-          >
-            <Images index={index} />
-            <span>{row.name}</span>
-          </button>
-        ))}
+        <h1>Drink finished</h1>
+        <Images index={this.props.index} />
+        <h2>{`Enjoy your ${this.props.menu[this.props.index].name}`}</h2>
+        <button onClick={() => DataControll.sendSignal("returnToMenu")}>
+          Cancel
+        </button>
       </div>
     );
   }
