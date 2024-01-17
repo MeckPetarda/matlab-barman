@@ -1,0 +1,12 @@
+.img {
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+
+  display: block;
+  position: relative;
+
+  max-height: 250px;
+  overflow: hidden;
+
+  border-radius: 15px;
+}

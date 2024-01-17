@@ -15,6 +15,8 @@ export default class App extends Component {
     document.addEventListener("setMenu", this._handleMenuChange);
 
     document.addEventListener("setView", this._handleViewChange);
+
+    document.addEventListener("setProgress", this._handleProgressChange);
   }
 
   state = {
@@ -65,6 +67,12 @@ export default class App extends Component {
     }
   };
 
+  _handleProgressChange = (e) => {
+    let data = JSON.parse(e.detail);
+
+    this.setState({ progress: data });
+  };
+
   render() {
     switch (this.state.view) {
       case "DRINK_SELECT":
@@ -81,7 +89,10 @@ export default class App extends Component {
             <button onClick={(e) => DataControll.sendSignal("returnToMenu")}>
               Cancel
             </button>
-            <h1>{this.state.mixingDrink}</h1>
+            <pre>{JSON.stringify(this.state.menu[this.state.mixingDrink])}</pre>
+            {this.state.progress && (
+              <pre>{JSON.stringify(this.state.progress)}</pre>
+            )}
             <span>WIP</span>
           </div>
         );

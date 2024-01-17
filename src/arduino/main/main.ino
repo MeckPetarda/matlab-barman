@@ -8,6 +8,8 @@
 #define ENABLE_ROTOR 9
 #define DIR_ROTOR 10
 
+#define MIX_PIN 6
+
 void setup() {
   pinMode(STEP_LIFT, OUTPUT);
   pinMode(ENABLE_LIFT, OUTPUT);
@@ -91,6 +93,15 @@ void loop() {
 
 void driveMotor(int motorId, int motorDir, int steps) {
   int enablePin, stepPin, dirPin;
+
+  if (motorId == 2) {
+
+    digitalWrite(MIX_PIN, HIGH);
+    delay(1000);
+    digitalWrite(MIX_PIN, LOW);
+
+    return;
+  }
 
   if (motorId == 1) {
     enablePin = ENABLE_LIFT;

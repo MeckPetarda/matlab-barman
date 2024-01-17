@@ -12,34 +12,36 @@ import GinSecret from "../../../imgs/gin-secret.jpg";
 import LongIslandIcedTea from "../../../imgs/long-island-iced-tea.jpg";
 import SexOnTheBeach from "../../../imgs/sex-on-the-beach.jpg";
 
+import style from "./style.module.scss";
+
 export default class Images extends Component {
   render() {
     switch (this.props.index) {
       case 0:
-        return <img src={TequilaSunrise} />;
+        return <img className={style.img} src={TequilaSunrise} />;
       case 1:
-        return <img src={Margarita} />;
+        return <img className={style.img} src={Margarita} />;
       case 2:
-        return <img src={VodkaSunrise} />;
+        return <img className={style.img} src={VodkaSunrise} />;
       case 3:
-        return <img src={CubaLibre} />;
+        return <img className={style.img} src={CubaLibre} />;
       case 4:
-        return <img src={GinSecret} />;
+        return <img className={style.img} src={GinSecret} />;
       case 5:
-        return <img src={Screwdriver} />;
+        return <img className={style.img} src={Screwdriver} />;
       case 6:
-        return <img src={Kamikaze} />;
+        return <img className={style.img} src={Kamikaze} />;
       case 7:
-        return <img src={Cosmopolitan} />;
+        return <img className={style.img} src={Cosmopolitan} />;
       case 8:
-        return <img src={SexOnTheBeach} />;
+        return <img className={style.img} src={SexOnTheBeach} />;
       case 9:
-        return <img src={LongIslandIcedTea} />;
+        return <img className={style.img} src={LongIslandIcedTea} />;
       case 10:
-        return <img src={JungleJuice4Poor} />;
+        return <img className={style.img} src={JungleJuice4Poor} />;
 
       default:
-        return <img src={Cosmopolitan} />;
+        return <img className={style.img} src={Cosmopolitan} />;
     }
   }
 }

@@ -40,6 +40,15 @@
           );
         });
 
+        htmlComponent.addEventListener("updateProgress", function (event) {
+          document.body.dispatchEvent(
+            new CustomEvent("setProgress", {
+              bubbles: true,
+              detail: event.Data,
+            })
+          );
+        });
+
         document.body.addEventListener("sendSignal", (e) => {
           if (!e.detail) return;
 

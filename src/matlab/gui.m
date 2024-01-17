@@ -16,18 +16,26 @@ classdef gui < matlab.apps.AppBase
         instructions;
         instructionIndex = 1;
         waitingForConfirmation = false;
+        angle = 0;
     end
 
 
     methods (Access = private)
         function performGCode(app, code)
 
-            angle = 0;
             ANGLE_STEP = 360/10;
-            GEAR_RATIO = 2;
-            NUMBER_OF_STEPS_PER_REVOLUTION = 192;
+            ROTOR_GEAR_RATIO = 2;
+            ROTOR_NUMBER_OF_STEPS_PER_REVOLUTION = 800;
 
-            res = strings(0);
+            LIFT_NUMBER_OF_STEPS_PER_UNIT = 400;
+            LIFT_PER_REVOLUTION_MM = 150;
+            TRIGGER_LIFT_HEIGHT = 100
+
+            TRIGGER_STEPS = round((TRIGGER_LIFT_HEIGHT / LIFT_PER_REVOLUTION_MM) * LIFT_NUMBER_OF_STEPS_PER_UNIT)
+
+            instructions = [struct("command", "", "message", "")];
+            instructions = instructions(2:end)
+
 
             for i = 1:size(code)
                 word = char(code(i));
@@ -35,20 +43,31 @@ classdef gui < matlab.apps.AppBase
 
                 switch leadingChar
                     case 'N'
+                        DRINK_CREATION_STEPS = word(2);
 
                     case 'G'
                         if word(2) == '1'
-                            index = str2double(char(code(i + 1)));
+                            index = str2double(char(code(i + 1)))
                             count = str2double(char(code(i + 2)));
+
+
 
                             if (index == 11)
 
+                                MIX_DISTANCE = 500
+                                MIX_STEPS = round((MIX_DISTANCE / LIFT_PER_REVOLUTION_MM) * LIFT_NUMBER_OF_STEPS_PER_UNIT)
+
+                                instructions(end+1) = struct("command", strcat("1:0:", num2str(MIX_STEPS)), "message", "Mixing")
+                                instructions(end+1) = struct("command", strcat("2:1:100"), "message", "")
+                                instructions(end+1) = struct("command", strcat("1:1:", num2str(MIX_STEPS)), "message", "")
+
+
                             else
-                                destination = index * ANGLE_STEP;
+                                destination = (index - 1) * ANGLE_STEP
 
 
-                                dir1 = angle - destination
-                                dir2 = angle + 360 - destination
+                                dir1 = destination - app.angle
+                                dir2 = destination - app.angle + 360
 
                                 rotor = dir1;
 
@@ -56,22 +75,25 @@ classdef gui < matlab.apps.AppBase
                                     rotor = dir2;
                                 end
 
-                                steps = round(((angle * GEAR_RATIO) / 360) .* NUMBER_OF_STEPS_PER_REVOLUTION)
+                                steps = round((rotor / 360) .* ROTOR_NUMBER_OF_STEPS_PER_REVOLUTION .* ROTOR_GEAR_RATIO)
 
-                                angle = angle + rotor;
+                                app.angle = mod(app.angle + rotor, 360)
 
-                               
                                 if abs(steps) > 0
-                                     dir = 0;
+                                    dir = 0;
                                     if (steps < 0)
                                         dir = 1;
                                     end
 
-                                    res(end+1) = strcat("0:" , num2str(dir) , ":" ,num2str(abs(steps)), "&1:1:200&1:2:200")
+                                    instructions(end+1) = struct("command", strcat("0:" , num2str(dir) , ":" ,num2str(abs(steps))), "message", strcat("Adding ", char(app.commands(index, :).drink)));
                                 end
 
-                                for j = 1:count - 1
-                                    res(end+1) = strcat("1:1:200&1:2:200")
+                                for j = 1:count
+
+                                    instructions(end+1) = struct("command", strcat("1:1:", num2str(TRIGGER_STEPS)), "message", "")
+                                    instructions(end+1) = struct("command", strcat("1:0:", num2str(TRIGGER_STEPS)), "message", "")
+
+
 
                                 end
 
@@ -81,8 +103,8 @@ classdef gui < matlab.apps.AppBase
                 end
             end
 
-            res
-            app.instructions = res;
+            instructions
+            app.instructions = instructions;
             app.instructionIndex = 1;
             app.performInstructions();
         end
@@ -90,6 +112,17 @@ classdef gui < matlab.apps.AppBase
         function performInstructions(app)
             if ~isempty(app.instructions) && length(app.instructions) >= app.instructionIndex
                 app.waitingForConfirmation = true;
+
+                if (app.instructions(app.instructionIndex).message ~= "")
+                    event = struct( ...
+                        "total", length(app.instructions) , ...
+                        "progress", app.instructionIndex, ...
+                        "message", app.instructions(app.instructionIndex).message ...
+                        );
+                    sendEventToHTMLSource(app.HTML,"updateProgress", jsonencode(event));
+
+                end
+
 
                 % fprintf(app.board, char(['ready?']));
                 app.sendSerial('ready?');
@@ -119,7 +152,13 @@ classdef gui < matlab.apps.AppBase
 
 
         function sendInstruction(app)
-            app.sendSerial(app.instructions(app.instructionIndex));
+
+
+
+            app.sendSerial(app.instructions(app.instructionIndex).command);
+
+
+
             % fprintf(app.board, char([app.instructions(app.instructionIndex)]));
             app.instructionIndex = app.instructionIndex + 1;
         end
@@ -140,7 +179,7 @@ classdef gui < matlab.apps.AppBase
                 return;
             end
 
-            data = strtrim(char(read(app.board, src.NumBytesAvailable, "uint8")))
+            data = strtrim(char(read(app.board, src.NumBytesAvailable, "uint8")));
 
             if data == "ready to recieve;"
                 app.sendInstruction();
@@ -171,6 +210,9 @@ classdef gui < matlab.apps.AppBase
                 case "returnToMenu"
                     app.makingDrink = false;
 
+                    app.instructions = [];
+                    app.instructionIndex = 1;
+
                     event = struct("view", "DRINK_SELECT");
 
                     sendEventToHTMLSource(app.HTML,"updateView", jsonencode(event));
@@ -184,7 +226,8 @@ classdef gui < matlab.apps.AppBase
                     code = app.parseGCode(app.drinkData(2));
                     app.performGCode(code);
 
-                    % app.instructions = ["0:1:12000"];
+                    % app.instructions = ["1:0:500&1:1:500"];
+                    %
                     % app.instructionIndex = 1;
                     % app.performInstructions();
             end
@@ -270,7 +313,7 @@ classdef gui < matlab.apps.AppBase
         end
 
         function setMenu(app, menu)
-            assert(size(menu,2) == 3)
+            assert(size(menu,2) == 2)
 
             app.menu = menu;
             app.updateMenu();
