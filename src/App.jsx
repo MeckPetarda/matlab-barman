@@ -1,5 +1,4 @@
 import React, { Component } from "react";
-import Counter from "./components/Counter";
 import { createRef } from "react";
 import DataControll from "./utils/DataControll";
 import Menu from "./components/Menu";

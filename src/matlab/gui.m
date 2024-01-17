@@ -13,6 +13,8 @@ classdef gui < matlab.apps.AppBase
         drinkData;
         instructions;
         instructionIndex = 1;
+        rawInstructionsCount = 0;
+        rawInstructionIndex = 1;
         selectorArmAngle = 0;
         board % The serial connection to the ARDUINO board
     end
@@ -30,91 +32,82 @@ classdef gui < matlab.apps.AppBase
 
             TRIGGER_STEPS = round((TRIGGER_LIFT_HEIGHT / LIFT_PER_REVOLUTION_MM) * LIFT_NUMBER_OF_STEPS_PER_UNIT);
 
+            app.rawInstructionsCount = str2double(char(code(1)));
+
             drinkInstructions = [struct("command", "", "message", "")];
             drinkInstructions = drinkInstructions(2:end);
 
-            for i = 1:size(code)
-                word = char(code(i));
-                leadingChar = word(1);
+            for i = 3:3:size(code)
+                index = str2double(char(code(i)))
+                count = str2double(char(code(i + 1)))
 
-                if leadingChar == 'N'
+                if (index == 11)
 
-                    DRINK_CREATION_STEPS = str2double(char(code(i + 1)));
+                    MIX_DISTANCE = 500;
+                    MIX_STEPS = round((MIX_DISTANCE / LIFT_PER_REVOLUTION_MM) * LIFT_NUMBER_OF_STEPS_PER_UNIT);
 
-                elseif leadingChar == 'G'
+                    drinkInstructions(end + 1) = struct( ...
+                        "command", strcat("1:0:", num2str(MIX_STEPS)), ...
+                        "message", "Mixing" ...
+                    )
+                    drinkInstructions(end + 1) = struct( ...
+                        "command", strcat("2:1:100"), ...
+                        "message", "" ...
+                    );
+                    drinkInstructions(end + 1) = struct( ...
+                        "command", strcat("1:1:", num2str(MIX_STEPS)), ...
+                        "message", "" ...
+                    );
 
-                    index = str2double(char(code(i + 1)))
-                    count = str2double(char(code(i + 2)))
+                else
+                    destination = (index - 1) * ANGLE_STEP;
 
-                    if (index == 11)
+                    dir1 = destination - app.selectorArmAngle;
+                    dir2 = destination - app.selectorArmAngle + 360;
 
-                        MIX_DISTANCE = 500;
-                        MIX_STEPS = round((MIX_DISTANCE / LIFT_PER_REVOLUTION_MM) * LIFT_NUMBER_OF_STEPS_PER_UNIT);
+                    rotor = dir1;
+
+                    if abs(dir1) > abs(dir2)
+                        rotor = dir2;
+                    end
+
+                    rotorSteps = round((rotor / 360) .* ROTOR_NUMBER_OF_STEPS_PER_REVOLUTION .* ROTOR_GEAR_RATIO);
+
+                    app.selectorArmAngle = mod(app.selectorArmAngle + rotor, 360);
+
+                    if abs(rotorSteps) > 0
+                        dir = 0;
+
+                        if (rotorSteps < 0)
+                            dir = 1;
+                        end
 
                         drinkInstructions(end + 1) = struct( ...
-                            "command", strcat("1:0:", num2str(MIX_STEPS)), ...
-                            "message", "Mixing" ...
+                            "command", strcat("0:", num2str(dir), ":", num2str(abs(rotorSteps))), ...
+                            "message", strcat("Adding ", char(app.commands(index, :).drink)) ...
                         )
+                    end
+
+                    for j = 1:count
+
                         drinkInstructions(end + 1) = struct( ...
-                            "command", strcat("2:1:100"), ...
+                            "command", strcat("1:1:", num2str(TRIGGER_STEPS)), ...
                             "message", "" ...
                         );
                         drinkInstructions(end + 1) = struct( ...
-                            "command", strcat("1:1:", num2str(MIX_STEPS)), ...
+                            "command", strcat("1:0:", num2str(TRIGGER_STEPS)), ...
                             "message", "" ...
                         );
-
-                    else
-                        destination = (index - 1) * ANGLE_STEP;
-
-                        dir1 = destination - app.selectorArmAngle;
-                        dir2 = destination - app.selectorArmAngle + 360;
-
-                        rotor = dir1;
-
-                        if abs(dir1) > abs(dir2)
-                            rotor = dir2;
-                        end
-
-                        rotorSteps = round((rotor / 360) .* ROTOR_NUMBER_OF_STEPS_PER_REVOLUTION .* ROTOR_GEAR_RATIO);
-
-                        app.selectorArmAngle = mod(app.selectorArmAngle + rotor, 360);
-
-                        if abs(rotorSteps) > 0
-                            dir = 0;
-
-                            if (rotorSteps < 0)
-                                dir = 1;
-                            end
-
-                            drinkInstructions(end + 1) = struct( ...
-                                "command", strcat("0:", num2str(dir), ":", num2str(abs(rotorSteps))), ...
-                                "message", strcat("Adding ", char(app.commands(index, :).drink)) ...
-                            )
-                        end
-
-                        for j = 1:count
-
-                            drinkInstructions(end + 1) = struct( ...
-                                "command", strcat("1:1:", num2str(TRIGGER_STEPS)), ...
-                                "message", "" ...
-                            );
-                            drinkInstructions(end + 1) = struct( ...
-                                "command", strcat("1:0:", num2str(TRIGGER_STEPS)), ...
-                                "message", "" ...
-                            );
-
-                        end
 
                     end
 
-                    i = i + 2;
                 end
 
             end
 
             app.instructions = drinkInstructions;
             app.instructionIndex = 1;
+            app.rawInstructionIndex = 1;
             app.performInstructions();
         end
 
@@ -128,15 +121,17 @@ classdef gui < matlab.apps.AppBase
 
             if isempty(app.instructions) || length(app.instructions) < app.instructionIndex; return; end
 
-            if (app.instructions(app.instructionIndex).message == ""); return; end
+            if (app.instructions(app.instructionIndex).message ~= "")
+                event = struct( ...
+                    "total", app.rawInstructionsCount, ...
+                    "progress", app.rawInstructionIndex, ...
+                    "message", app.instructions(app.instructionIndex).message ...
+                );
 
-            event = struct( ...
-                "total", length(app.instructions), ...
-                "progress", app.instructionIndex, ...
-                "message", app.instructions(app.instructionIndex).message ...
-            );
+                sendEventToHTMLSource(app.HTML, "updateProgress", jsonencode(event));
 
-            sendEventToHTMLSource(app.HTML, "updateProgress", jsonencode(event));
+                app.rawInstructionIndex = app.rawInstructionIndex + 1;
+            end
 
             sendSerial(app.board, 'ready?');
         end
@@ -178,9 +173,12 @@ classdef gui < matlab.apps.AppBase
 
                     sendEventToHTMLSource(app.HTML, "updateView", jsonencode(event));
                 case "returnToMenu"
+                    % Cancel the sending of new instructions
                     app.makingDrink = false;
 
                     app.instructions = [];
+                    app.rawInstructionsCount = 0;
+                    app.rawInstructionIndex = 1;
                     app.instructionIndex = 1;
 
                     event = struct("view", "DRINK_SELECT");
