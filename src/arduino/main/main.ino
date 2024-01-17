@@ -49,16 +49,10 @@ void loop() {
   if (outer_saveptr == NULL) {
     int motorId = atoi(strtok_r(token, inner_delimiters, &inner_saveptr));
     if (inner_saveptr == NULL) return;
-    // Serial.println(motorId);
-    // Serial.write('\r');
-
+    
     int motorDir = atoi(strtok_r(NULL, inner_delimiters, &inner_saveptr));
-    // Serial.println(motorDir);
-    // Serial.write('\r');
-
     int steps = atoi(strtok_r(NULL, inner_delimiters, &inner_saveptr));
-    // Serial.println(steps);
-    // Serial.write('\r');
+ 
     if (steps == 0) return;
 
     Serial.println("command recieved;");
@@ -71,18 +65,9 @@ void loop() {
 
   while (token != NULL) {
     int motorId = atoi(strtok_r(token, inner_delimiters, &inner_saveptr));
-    // Serial.println(motorId);
-    // Serial.write('\r');
-
     int motorDir = atoi(strtok_r(NULL, inner_delimiters, &inner_saveptr));
-    // Serial.println(motorDir);
-    // Serial.write('\r');
-
     int steps = atoi(strtok_r(NULL, inner_delimiters, &inner_saveptr));
-    // Serial.println(steps);
-    // Serial.write('\r');
-
-    /// 1:2:3&4:5:6
+ 
     driveMotor(motorId, motorDir, steps);
 
     token = strtok_r(NULL, outer_delimiters, &outer_saveptr);
