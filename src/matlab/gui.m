@@ -1,10 +1,9 @@
 classdef gui < matlab.apps.AppBase
 
-    % Properties that correspond to goi components
+    % Properties that correspond to gui components
     properties (Access = public)
         UIFigure matlab.ui.Figure
         HTML matlab.ui.control.HTML
-
     end
 
     properties (Access = private)
@@ -31,8 +30,8 @@ classdef gui < matlab.apps.AppBase
 
             TRIGGER_STEPS = round((TRIGGER_LIFT_HEIGHT / LIFT_PER_REVOLUTION_MM) * LIFT_NUMBER_OF_STEPS_PER_UNIT);
 
-            drink_instructions = [struct("command", "", "message", "")];
-            drink_instructions = drink_instructions(2:end);
+            drinkInstructions = [struct("command", "", "message", "")];
+            drinkInstructions = drinkInstructions(2:end);
 
             for i = 1:size(code)
                 word = char(code(i));
@@ -52,15 +51,15 @@ classdef gui < matlab.apps.AppBase
                         MIX_DISTANCE = 500;
                         MIX_STEPS = round((MIX_DISTANCE / LIFT_PER_REVOLUTION_MM) * LIFT_NUMBER_OF_STEPS_PER_UNIT);
 
-                        drink_instructions(end + 1) = struct( ...
+                        drinkInstructions(end + 1) = struct( ...
                             "command", strcat("1:0:", num2str(MIX_STEPS)), ...
                             "message", "Mixing" ...
                         )
-                        drink_instructions(end + 1) = struct( ...
+                        drinkInstructions(end + 1) = struct( ...
                             "command", strcat("2:1:100"), ...
                             "message", "" ...
                         );
-                        drink_instructions(end + 1) = struct( ...
+                        drinkInstructions(end + 1) = struct( ...
                             "command", strcat("1:1:", num2str(MIX_STEPS)), ...
                             "message", "" ...
                         );
@@ -77,30 +76,30 @@ classdef gui < matlab.apps.AppBase
                             rotor = dir2;
                         end
 
-                        rotor_steps = round((rotor / 360) .* ROTOR_NUMBER_OF_STEPS_PER_REVOLUTION .* ROTOR_GEAR_RATIO);
+                        rotorSteps = round((rotor / 360) .* ROTOR_NUMBER_OF_STEPS_PER_REVOLUTION .* ROTOR_GEAR_RATIO);
 
                         app.selectorArmAngle = mod(app.selectorArmAngle + rotor, 360);
 
-                        if abs(rotor_steps) > 0
+                        if abs(rotorSteps) > 0
                             dir = 0;
 
-                            if (rotor_steps < 0)
+                            if (rotorSteps < 0)
                                 dir = 1;
                             end
 
-                            drink_instructions(end + 1) = struct( ...
-                                "command", strcat("0:", num2str(dir), ":", num2str(abs(rotor_steps))), ...
+                            drinkInstructions(end + 1) = struct( ...
+                                "command", strcat("0:", num2str(dir), ":", num2str(abs(rotorSteps))), ...
                                 "message", strcat("Adding ", char(app.commands(index, :).drink)) ...
                             )
                         end
 
                         for j = 1:count
 
-                            drink_instructions(end + 1) = struct( ...
+                            drinkInstructions(end + 1) = struct( ...
                                 "command", strcat("1:1:", num2str(TRIGGER_STEPS)), ...
                                 "message", "" ...
                             );
-                            drink_instructions(end + 1) = struct( ...
+                            drinkInstructions(end + 1) = struct( ...
                                 "command", strcat("1:0:", num2str(TRIGGER_STEPS)), ...
                                 "message", "" ...
                             );
@@ -114,9 +113,15 @@ classdef gui < matlab.apps.AppBase
 
             end
 
-            app.instructions = drink_instructions;
+            app.instructions = drinkInstructions;
             app.instructionIndex = 1;
             app.performInstructions();
+        end
+
+        function sendInstruction(app)
+            sendSerial(app.board, app.instructions(app.instructionIndex).command);
+
+            app.instructionIndex = app.instructionIndex + 1;
         end
 
         function performInstructions(app)
@@ -134,12 +139,6 @@ classdef gui < matlab.apps.AppBase
             sendEventToHTMLSource(app.HTML, "updateProgress", jsonencode(event));
 
             sendSerial(app.board, 'ready?');
-        end
-
-        function sendInstruction(app)
-            sendSerial(app.board, app.instructions(app.instructionIndex).command);
-
-            app.instructionIndex = app.instructionIndex + 1;
         end
 
         function readSerialData(app, src, ~)
@@ -208,10 +207,10 @@ classdef gui < matlab.apps.AppBase
         function startupFcn(app)
             app.board = serialport('COM3', 9600);
 
-            InputBufferSize = 8;
-            Timeout = 0.1;
-            set(app.board, 'InputBufferSize', InputBufferSize);
-            set(app.board, 'Timeout', Timeout);
+            inputBufferSize = 8;
+            timeout = 0.1;
+            set(app.board, 'InputBufferSize', inputBufferSize);
+            set(app.board, 'Timeout', timeout);
             configureTerminator(app.board, double(';'))
 
             configureCallback(app.board, "terminator", @(src, event) readSerialData(app, src, event))
