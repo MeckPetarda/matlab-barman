@@ -23,24 +23,23 @@ export default class DrinkDetail extends Component {
   render() {
     return (
       <div className={style.wrapper}>
-        <div className={style.infoWrapper}>
+        <div>
           <div>
-            <h1>{this.props.menu[this.props.index].name}</h1>
-            <span>Please place the cup in the displenser cavity</span>
+            <h1>{`Make ${this.props.menu[this.props.index].name}?`}</h1>
+            <pre>
+              {this.props.menu[this.props.index].ingredients.replace(
+                /\\n/g,
+                "\n"
+              )}
+            </pre>
           </div>
           <Images index={this.props.index} />
         </div>
-        <div className={style.buttonWrapper}>
-          <button
-            className={style.backButton}
-            onClick={() => DataControll.sendSignal("returnToMenu")}
-          >
+        <div>
+          <button onClick={() => DataControll.sendSignal("returnToMenu")}>
             Cancel
           </button>
-          <button
-            className={style.continueButton}
-            onClick={() => DataControll.sendSignal("beginDrink")}
-          >
+          <button onClick={() => DataControll.sendSignal("beginDrink")}>
             Continue
           </button>
         </div>

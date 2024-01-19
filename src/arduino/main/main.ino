@@ -1,12 +1,13 @@
 #define INPUT_SIZE 120
 
-#define STEP_LIFT 2
-#define ENABLE_LIFT 3
-#define DIR_LIFT 4
+#define DIR_LIFT 2
+#define STEP_LIFT 3
+#define ENABLE_LIFT 4
 
-#define STEP_ROTOR 8
-#define ENABLE_ROTOR 9
-#define DIR_ROTOR 10
+
+#define DIR_ROTOR 8
+#define STEP_ROTOR 9
+#define ENABLE_ROTOR 10
 
 #define MIX_PIN 6
 

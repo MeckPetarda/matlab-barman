@@ -1,7 +1,6 @@
 import { Component } from "react";
 import PropTypes from "prop-types";
 
-import Images from "../Img";
 import DataControll from "../../utils/DataControll";
 
 import style from "./style.module.scss";
@@ -9,7 +8,7 @@ import style from "./style.module.scss";
 /**
  * @augments {Component<Props, State>}
  */
-export default class DrinkFinished extends Component {
+export default class DrinkProgress extends Component {
   static propTypes = {
     menu: PropTypes.arrayOf(
       PropTypes.shape({
@@ -21,13 +20,19 @@ export default class DrinkFinished extends Component {
   };
 
   render() {
+    const { menu, index, progress } = this.props;
+
     return (
       <div className={style.wrapper}>
-        <h1>Drink finished</h1>
-        <Images index={this.props.index} />
-        <h2>{`Enjoy your ${this.props.menu[this.props.index].name}`}</h2>
+        {progress && (
+          <>
+            <h1>{`Making ${menu[index].name}`}</h1>
+            <h2>{`${progress.message} (${progress.progress}/${progress.total})`}</h2>
+            <progress max={progress.total} min={0} value={progress.progress} />
+          </>
+        )}
         <button onClick={() => DataControll.sendSignal("returnToMenu")}>
-          Renturn to menu
+          Cancel
         </button>
       </div>
     );

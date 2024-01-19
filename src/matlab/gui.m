@@ -28,7 +28,7 @@ classdef gui < matlab.apps.AppBase
 
             LIFT_NUMBER_OF_STEPS_PER_UNIT = 400;
             LIFT_PER_REVOLUTION_MM = 150;
-            TRIGGER_LIFT_HEIGHT = 100;
+            TRIGGER_LIFT_HEIGHT = 200;
 
             TRIGGER_STEPS = round((TRIGGER_LIFT_HEIGHT / LIFT_PER_REVOLUTION_MM) * LIFT_NUMBER_OF_STEPS_PER_UNIT);
 
@@ -42,7 +42,7 @@ classdef gui < matlab.apps.AppBase
                 count = str2double(char(code(i + 1)));
 
                 if (index == 11)
-
+                    % Add a MIX instruction
                     MIX_DISTANCE = 500;
                     MIX_STEPS = round((MIX_DISTANCE / LIFT_PER_REVOLUTION_MM) * LIFT_NUMBER_OF_STEPS_PER_UNIT);
 
@@ -60,6 +60,7 @@ classdef gui < matlab.apps.AppBase
                     );
 
                 else
+                    % Add a DISPENSE INGREDIENT instruction
                     destination = (index - 1) * ANGLE_STEP;
 
                     dir1 = destination - app.selectorArmAngle;
@@ -76,6 +77,7 @@ classdef gui < matlab.apps.AppBase
                     app.selectorArmAngle = mod(app.selectorArmAngle + rotor, 360);
 
                     if abs(rotorSteps) > 0
+                        % Rotate below desired ingredient
                         dir = 0;
 
                         if (rotorSteps < 0)
@@ -87,9 +89,10 @@ classdef gui < matlab.apps.AppBase
                             "message", strcat("Adding ", char(app.commands(index, :).drink)) ...
                         )
                     end
-
+                    
+                    % Dispense ingredient
                     for j = 1:count
-
+                        
                         drinkInstructions(end + 1) = struct( ...
                             "command", strcat("1:1:", num2str(TRIGGER_STEPS)), ...
                             "message", "" ...
@@ -98,7 +101,6 @@ classdef gui < matlab.apps.AppBase
                             "command", strcat("1:0:", num2str(TRIGGER_STEPS)), ...
                             "message", "" ...
                         );
-
                     end
 
                 end
@@ -118,6 +120,7 @@ classdef gui < matlab.apps.AppBase
         end
 
         function performInstructions(app)
+            if ~app.makingDrink; return; end
 
             if isempty(app.instructions) || length(app.instructions) < app.instructionIndex
                 event = struct("view", "DRINK_FINISHED");
@@ -163,10 +166,7 @@ classdef gui < matlab.apps.AppBase
 
             switch name
                 case "selectDrink"
-
-                    if app.makingDrink
-                        return
-                    end
+                    if app.makingDrink; return; end
 
                     drinkName = event.HTMLEventData;
 
@@ -195,7 +195,6 @@ classdef gui < matlab.apps.AppBase
 
                     code = parseGCode(app.drinkData(2));
                     app.performGCode(code);
-
             end
 
         end
@@ -278,7 +277,33 @@ classdef gui < matlab.apps.AppBase
         end
 
         function setMenu(app, menu)
+            assert(max(size(app.commands)) ~= 0)
             assert(size(menu, 2) == 2)
+
+            ingredients = strings(0);
+
+
+            for i = 1:size(menu)
+               res = "";
+               code = parseGCode(menu(i, 2))
+
+               for i = 3:3:size(code)
+                index = str2double(char(code(i)));
+                count = char(code(i + 1));
+
+                if (index == 11)
+                    res = strcat(res, count, "x ", "Mix the contents", '\n')
+                else
+                    res = strcat(res, count, "x ", char(app.commands(index, :).drink), '\n')
+                end
+               end
+
+               ingredients(end + 1) = res
+            end
+
+            ingredients = ingredients'
+
+            menu = [menu, ingredients];
 
             app.menu = menu;
             sendEventToHTMLSource(app.HTML, "updateMenu", jsonencode(app.menu));
