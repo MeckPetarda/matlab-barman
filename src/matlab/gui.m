@@ -285,23 +285,23 @@ classdef gui < matlab.apps.AppBase
 
             for i = 1:size(menu)
                res = "";
-               code = parseGCode(menu(i, 2))
+               code = parseGCode(menu(i, 2));
 
                for i = 3:3:size(code)
                 index = str2double(char(code(i)));
                 count = char(code(i + 1));
 
                 if (index == 11)
-                    res = strcat(res, count, "x ", "Mix the contents", '\n')
+                    res = strcat(res, count, "x ", "Mix the contents", '\n');
                 else
-                    res = strcat(res, count, "x ", char(app.commands(index, :).drink), '\n')
+                    res = strcat(res, count, "x ", char(app.commands(index, :).drink), '\n');
                 end
                end
 
-               ingredients(end + 1) = res
+               ingredients(end + 1) = res;
             end
 
-            ingredients = ingredients'
+            ingredients = ingredients';
 
             menu = [menu, ingredients];
 
